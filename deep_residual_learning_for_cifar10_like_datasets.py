@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Lasagne implementation of CIFAR-10 examples from "Deep Residual Learning for Image Recognition" (http://arxiv.org/abs/1512.03385)
+Lasagne implementation of "Deep Residual Learning for Image Recognition"
 
 Check the accompanying files for pretrained models. The 32-layer network (n=5), achieves a validation error of 7.42%, 
 while the 56-layer network (n=9) achieves error of 6.75%, which is roughly equivalent to the examples in the paper.
@@ -24,9 +24,7 @@ import lasagne
 # for the larger networks (n>=9), we need to adjust pythons recursion limit
 sys.setrecursionlimit(10000)
 
-# ##################### Load data from CIFAR-10 dataset #######################
-# this code assumes the cifar dataset from 'https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
-# has been extracted in current working directory
+# ##################### Load data from Roof-Data Kaggle dataset #######################
 
 def unpickle(file):
     import cPickle
@@ -38,17 +36,14 @@ def unpickle(file):
 def load_data():
     xs = []
     ys = []
-    for j in range(1):
+    for j in range(7):
       d = unpickle('./data_batch_'+`j+1`)
       x = d['data']
       y = d['label']
       xs.append(x)
       ys.append(y)
 
-#    d = unpickle('cifar-10-batches-py/test_batch')
-#    xs.append(d['data'])
-#    ys.append(d['labels'])
-
+    # Process the RGB Arrays for the images
     x = np.concatenate(xs)/np.float32(255)
     y = np.concatenate(ys)
     x = np.dstack((x[:, :1024], x[:, 1024:2048], x[:, 2048:]))
@@ -60,15 +55,15 @@ def load_data():
     x -= pixel_mean
 
     # create mirrored images
-    X_train = x[0:31000,:,:,:]
-    Y_train = y[0:31000]
+    X_train = x[0:60000,:,:,:]
+    Y_train = y[0:60000]
     X_train_flip = X_train[:,:,:,::-1]
     Y_train_flip = Y_train
     X_train = np.concatenate((X_train,X_train_flip),axis=0)
     Y_train = np.concatenate((Y_train,Y_train_flip),axis=0)
 
-    X_test = x[31000:,:,:,:]
-    Y_test = y[31000:]
+    X_test = x[60000:,:,:,:]
+    Y_test = y[60000:]
 
     return dict(
         X_train=lasagne.utils.floatX(X_train),
@@ -182,10 +177,6 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False, augment=False
 # ############################## Main program ################################
 
 def main(n=5, num_epochs=82, model=None):
-    # Check if cifar data exists
-    if not os.path.exists("./cifar-10-batches-py"):
-        print("CIFAR-10 dataset can not be found. Please download the dataset from 'https://www.cs.toronto.edu/~kriz/cifar.html'.")
-        return
 
     # Load the dataset
     print("Loading data...")
@@ -244,7 +235,7 @@ def main(n=5, num_epochs=82, model=None):
         # We iterate over epochs:
         for epoch in range(num_epochs):
             # shuffle training data
-            train_indices = np.arange(32000)
+            train_indices = np.arange(60000)
             np.random.shuffle(train_indices)
             X_train = X_train[train_indices,:,:,:]
             Y_train = Y_train[train_indices]
@@ -310,7 +301,7 @@ def main(n=5, num_epochs=82, model=None):
 
 if __name__ == '__main__':
     if ('--help' in sys.argv) or ('-h' in sys.argv):
-        print("Trains a Deep Residual Learning network on cifar-10 using Lasagne.")
+        print("Trains a Deep Residual Learning network on roof-dataset similar to cifar10 architecture using Lasagne.")
         print("Network architecture and training parameters are as in section 4.2 in 'Deep Residual Learning for Image Recognition'.")
         print("Usage: %s [N [MODEL]]" % sys.argv[0])
         print()
